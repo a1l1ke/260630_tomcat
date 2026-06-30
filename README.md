@@ -10,7 +10,10 @@
 
 ```text
 tomcat/
+├── .gitignore                 # Git 무시 설정 파일
+├── .idea/                     # IntelliJ IDEA 프로젝트 설정 폴더
 ├── .mvn/                      # Maven Wrapper 관련 설정 폴더
+├── Dockerfile                 # Docker 컨테이너 빌드 설정 파일
 ├── mvnw                       # Linux/macOS용 Maven 실행 스크립트
 ├── mvnw.cmd                   # Windows용 Maven 실행 스크립트
 ├── pom.xml                    # Maven 의존성 및 빌드 설정 파일
@@ -38,6 +41,10 @@ tomcat/
   - 사용자에게 보여지는 첫 화면으로, 간단한 HTML 구조와 Java 코드가 융합된 JSP 스크립트가 포함되어 있습니다.
 - [web.xml](file:///Users/morgan/Documents/workspace/tomcat/src/main/webapp/WEB-INF/web.xml)
   - 서블릿 컨테이너(Tomcat)가 웹 애플리케이션을 구동할 때 필요한 설정을 담는 XML 설정 파일입니다.
+- [Dockerfile](file:///Users/morgan/Documents/workspace/tomcat/Dockerfile)
+  - 애플리케이션을 톰캣 환경에 올려 컨테이너화하여 일관된 빌드 및 실행을 보장하도록 돕는 Docker 설정 파일입니다.
+- [.gitignore](file:///Users/morgan/Documents/workspace/tomcat/.gitignore)
+  - 빌드 결과물(target)이나 IDE 설정(compiler.xml 등)처럼 Git 버전 관리에서 제외할 대상을 정의하는 파일입니다.
 
 ---
 
@@ -63,6 +70,12 @@ tomcat/
 ### JSP (JavaServer Pages)
 - HTML 문서 내부에 Java 코드를 삽입하여 동적인 웹 페이지를 생성하는 기술입니다.
 - 브라우저가 [index.jsp](file:///Users/morgan/Documents/workspace/tomcat/src/main/webapp/index.jsp)를 요청하면, 서블릿 컨테이너(Tomcat)는 이 JSP 파일을 내부적으로 `.java` 서블릿 파일로 컴파일하여 실행합니다. 즉, JSP도 결국 서블릿으로 변환되어 실행됩니다.
+
+### 메이븐 래퍼 (Maven Wrapper)
+- 개발자의 로컬 PC에 메이븐(Maven) 빌드 도구가 미리 설치되어 있지 않아도, 제공되는 스크립트(`mvnw` 또는 `mvnw.cmd`)를 통해 정해진 버전의 메이븐을 자동으로 다운로드하고 빌드를 수행할 수 있도록 해주는 도구입니다. 개발자 간 빌드 도구 버전 불일치 문제를 방지합니다.
+
+### Docker와 컨테이너화
+- 애플리케이션과 이를 실행하기 위한 모든 환경(자바 런타임, 서블릿 컨테이너인 Tomcat 등)을 하나의 가벼운 이미지로 패키징하고 이를 컨테이너 단위로 실행하는 기술입니다. 개발, 테스트, 배포 환경에서 "내 PC에서는 잘 되는데 왜 서버에서는 안 될까?"와 같은 환경 일관성 문제를 근본적으로 해결해줍니다.
 
 ---
 
@@ -97,3 +110,13 @@ tomcat/
 **A6.**
 - **Forward (포워드)**: 서블릿에서 다른 서블릿이나 JSP로 제어권을 넘기는 방식입니다. 웹 브라우저는 다른 페이지로 이동했는지 알 수 없어 브라우저의 URL 창 주소가 바뀌지 않습니다. 또한 HTTP 요청(Request)과 응답(Response) 객체가 공유되므로 데이터를 담아 전달하기 적합합니다. 서버 내부에서만 이동이 일어납니다.
 - **Redirect (리다이렉트)**: 서버가 클라이언트에게 "다른 주소(URL)로 다시 요청해라"는 응답(HTTP Status 302와 Location 헤더)을 보내는 방식입니다. 브라우저는 서버의 지시에 따라 해당 주소로 완전히 새로운 HTTP 요청을 다시 보냅니다. 따라서 브라우저의 URL 주소가 실제로 변경되며, 기존의 Request와 Response 객체는 소멸하고 새로운 객체가 생성됩니다. 시스템 상태를 변경하는 작업(예: 글쓰기 성공 후 목록으로 이동) 이후에는 새로고침 시 중복 요청을 방지하기 위해 리다이렉트를 사용하는 것이 바람직합니다.
+
+### Q7. Maven Wrapper (mvnw)의 사용 목적은 무엇인가요?
+**A7.**
+- 개발 환경마다 로컬에 설치된 Maven 버전이 다르면, 빌드 시 예기치 못한 호환성 버그나 설정 오류가 발생할 수 있습니다.
+- Maven Wrapper를 사용하면 프로젝트 내에 경량화된 실행 환경과 빌드 버전 정보(`.mvn/wrapper/maven-wrapper.properties`에 정의된 버전)를 포함해 배포하므로, 타 개발자나 CI/CD 서버 환경에서도 Maven을 별도로 수동 설치하지 않고 동일한 빌드 도구 버전을 안전하고 일관되게 사용할 수 있습니다.
+
+### Q8. Dockerfile을 작성하여 애플리케이션을 Docker 컨테이너 기반으로 배포할 때 얻을 수 있는 장점은 무엇인가요?
+**A8.**
+- **환경 독립성**: Java 런타임 버전, WAS(톰캣) 설정 등이 운영체제와 하드웨어 환경에 구애받지 않고, Dockerfile에 정의된 베이스 이미지 그대로 컨테이너 내에서 동일하게 동작함을 보장합니다.
+- **배포 및 이식성**: 빌드 완료된 WAR 파일과 톰캣 실행 환경이 하나의 컨테이너 이미지로 관리되므로, 어떠한 클라우드 환경이나 도커가 설치된 장비에서도 동일하게 원클릭 실행(또는 배포)할 수 있어 효율적입니다.
